@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+// http://westerly-lzh.github.io/cn/2014/05/Exponential-Smoothing/
+
 var (
 	y = []int64{362, 385, 432, 341, 382, 409,
 		498, 387, 473, 513, 582, 474, 544, 582, 681, 557, 628, 707, 773, 592, 627, 725, 854, 661}
@@ -68,8 +70,8 @@ func validateArguments(y []int64, alpha, beta, gamma float64, period, m int64) b
 func calculateHoltWinters(y []int64, a0, b0, alpha, beta, gamma float64, initialSeasonalIndices []float64, period, m int64) []float64 {
 
 	St := make([]float64, len(y))
-	Bt := make([]float64, len(y))
-	It := make([]float64, len(y))
+	Bt := make([]float64, len(y))  // 数据的趋势序列
+	It := make([]float64, len(y))  // 季节修正因子序列
 	Ft := make([]float64, int64(len(y))+m)
 
 	// Initialize base values
@@ -89,10 +91,10 @@ func calculateHoltWinters(y []int64, a0, b0, alpha, beta, gamma float64, initial
 			St[i] = alpha*float64(y[i]) + (1.0-alpha)*(St[i-1]+Bt[i-1])
 		}
 		// Calculate trend smoothing
-		Bt[i] = gamma*(St[i]-St[i-1]) + (1-gamma)*Bt[i-1]
+		Bt[i] = beta*(St[i]-St[i-1]) + (1-beta)*Bt[i-1]
 		// Calculate seasonal smoothing
 		if (i - period) >= 0 {
-			It[i] = beta*float64(y[i])/St[i] + (1.0-beta)*It[i-period]
+			It[i] = gamma*float64(y[i])/St[i] + (1.0-gamma)*It[i-period]
 		}
 		// Calculate forecast
 		if (i + m) >= period {
